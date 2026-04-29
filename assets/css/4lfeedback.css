@@ -1,0 +1,277 @@
+/* 4L Feedback System — Front-end styles */
+.fourl-feedback-wrapper * { box-sizing: border-box; }
+
+.fourl-feedback-form {
+	font-family: inherit;
+	max-width: 100%;
+}
+
+.fourl-meta {
+	background: #f6f7f9;
+	border-radius: 10px;
+	padding: 12px 14px;
+	margin-bottom: 16px;
+}
+.fourl-meta-label {
+	display: block;
+	font-size: 11px;
+	font-weight: 500;
+	color: #555;
+	margin-bottom: 4px;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+.fourl-title-input {
+	width: 100%;
+	font-size: 15px;
+	font-weight: 500;
+	padding: 8px 10px;
+	border: 1px solid #d8d8d8;
+	border-radius: 6px;
+	background: #fff;
+}
+
+.fourl-quadrant-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 12px;
+	margin-bottom: 16px;
+}
+@media (max-width: 600px) {
+	.fourl-quadrant-grid { grid-template-columns: 1fr; }
+}
+
+.fourl-quad {
+	padding: 14px;
+	border-radius: 10px;
+	min-height: 220px;
+	display: flex;
+	flex-direction: column;
+}
+.fourl-quad-loved   { background: #E1F5EE; }
+.fourl-quad-loathed { background: #FCEBEB; }
+.fourl-quad-longed  { background: #FAEEDA; }
+.fourl-quad-learned { background: #EEEDFE; }
+
+.fourl-quad-loved .fourl-quad-title   { color: #085041; }
+.fourl-quad-loathed .fourl-quad-title { color: #791F1F; }
+.fourl-quad-longed .fourl-quad-title  { color: #633806; }
+.fourl-quad-learned .fourl-quad-title { color: #3C3489; }
+
+.fourl-quad-loved .fourl-quad-subtitle,
+.fourl-quad-loved .fourl-quad-count   { color: #0F6E56; }
+.fourl-quad-loathed .fourl-quad-subtitle,
+.fourl-quad-loathed .fourl-quad-count { color: #A32D2D; }
+.fourl-quad-longed .fourl-quad-subtitle,
+.fourl-quad-longed .fourl-quad-count  { color: #854F0B; }
+.fourl-quad-learned .fourl-quad-subtitle,
+.fourl-quad-learned .fourl-quad-count { color: #534AB7; }
+
+.fourl-quad-header {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	margin-bottom: 4px;
+}
+.fourl-quad-title { margin: 0; font-size: 16px; font-weight: 600; }
+.fourl-quad-count { font-size: 12px; }
+.fourl-quad-subtitle { font-size: 12px; margin: 0 0 10px; }
+
+.fourl-quad-items {
+	list-style: none;
+	margin: 0 0 10px;
+	padding: 0;
+	flex: 1;
+}
+.fourl-quad-items li {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	background: #fff;
+	border-radius: 6px;
+	padding: 6px 8px;
+	margin-bottom: 6px;
+	font-size: 13px;
+	line-height: 1.4;
+}
+.fourl-quad-items li.fourl-starred { background: #FFF7E0; }
+.fourl-quad-items .fourl-item-text { flex: 1; word-break: break-word; }
+.fourl-quad-items button {
+	background: transparent;
+	border: none;
+	cursor: pointer;
+	font-size: 14px;
+	padding: 2px 6px;
+	line-height: 1;
+	color: #888;
+	border-radius: 4px;
+}
+.fourl-quad-items button:hover { background: #f0f0f0; color: #111; }
+.fourl-quad-items li.fourl-starred .fourl-star-btn { color: #BA7517; }
+
+.fourl-quad-add {
+	display: flex;
+	gap: 6px;
+	margin-top: auto;
+}
+.fourl-quad-input {
+	flex: 1;
+	font-size: 13px;
+	height: 32px;
+	padding: 0 8px;
+	border: 1px solid #d8d8d8;
+	border-radius: 6px;
+	background: #fff;
+}
+.fourl-quad-add-btn {
+	height: 32px;
+	width: 32px;
+	padding: 0;
+	font-size: 18px;
+	line-height: 1;
+	border-radius: 6px;
+	border: 1px solid #d8d8d8;
+	background: #fff;
+	cursor: pointer;
+}
+.fourl-quad-add-btn:hover { background: #f6f7f9; }
+
+.fourl-meta-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 12px;
+	margin-bottom: 16px;
+}
+@media (max-width: 600px) {
+	.fourl-meta-grid { grid-template-columns: 1fr; }
+}
+.fourl-meta-field label {
+	display: block;
+	font-size: 12px;
+	font-weight: 500;
+	margin-bottom: 4px;
+	color: #444;
+}
+.fourl-meta-field input {
+	width: 100%;
+	padding: 8px 10px;
+	border: 1px solid #d8d8d8;
+	border-radius: 6px;
+	background: #fff;
+	font-size: 14px;
+}
+.fourl-required { color: #A32D2D; }
+
+.fourl-hp { display: none !important; }
+
+.fourl-actions {
+	display: flex;
+	gap: 12px;
+	align-items: center;
+	flex-wrap: wrap;
+}
+.fourl-submit-btn {
+	background: #111;
+	color: #fff;
+	border: none;
+	padding: 10px 18px;
+	font-size: 14px;
+	font-weight: 500;
+	border-radius: 6px;
+	cursor: pointer;
+}
+.fourl-submit-btn:hover { background: #333; }
+.fourl-submit-btn[disabled] { opacity: 0.6; cursor: not-allowed; }
+
+.fourl-feedback-message {
+	font-size: 13px;
+}
+.fourl-feedback-message.is-success { color: #0F6E56; }
+.fourl-feedback-message.is-error   { color: #A32D2D; }
+
+/* Responses + Breadcrumbs */
+.fourl-empty {
+	color: #888;
+	font-style: italic;
+}
+.fourl-responses-list,
+.fourl-breadcrumbs-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+.fourl-response,
+.fourl-breadcrumb {
+	background: #f6f7f9;
+	border-radius: 10px;
+	padding: 14px;
+	margin-bottom: 12px;
+}
+.fourl-response-title { font-weight: 600; margin-bottom: 6px; }
+.fourl-response-meta {
+	font-size: 12px;
+	color: #888;
+	margin-top: 6px;
+}
+
+.fourl-breadcrumb-head {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: baseline;
+	margin-bottom: 8px;
+}
+.fourl-breadcrumb-title { font-size: 14px; }
+.fourl-breadcrumb-name { color: #666; font-size: 13px; }
+.fourl-breadcrumb-date { margin-left: auto; font-size: 12px; color: #888; }
+
+.fourl-breadcrumb-quadrants {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 8px;
+}
+@media (max-width: 600px) {
+	.fourl-breadcrumb-quadrants { grid-template-columns: 1fr; }
+}
+.fourl-breadcrumb-quad {
+	padding: 8px 10px;
+	border-radius: 8px;
+}
+.fourl-breadcrumb-quad.fourl-quad-loved   { background: #E1F5EE; }
+.fourl-breadcrumb-quad.fourl-quad-loathed { background: #FCEBEB; }
+.fourl-breadcrumb-quad.fourl-quad-longed  { background: #FAEEDA; }
+.fourl-breadcrumb-quad.fourl-quad-learned { background: #EEEDFE; }
+
+.fourl-breadcrumb-quad-label {
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	margin-bottom: 4px;
+}
+.fourl-breadcrumb-quad ul {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+.fourl-breadcrumb-quad li {
+	font-size: 13px;
+	padding: 2px 0;
+}
+.fourl-breadcrumb-quad .fourl-star { color: #BA7517; margin-right: 4px; }
+
+.fourl-breadcrumb-responses {
+	margin-top: 10px;
+	padding: 10px 12px;
+	background: #fff;
+	border-radius: 8px;
+	border-left: 3px solid #534AB7;
+}
+.fourl-breadcrumb-responses-label {
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	color: #534AB7;
+	margin-bottom: 4px;
+}
