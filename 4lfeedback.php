@@ -3,7 +3,7 @@
  * Plugin Name: 4L Feedback System
  * Plugin URI:  https://example.com/4lfeedback
  * Description: A structured 4Ls retrospective feedback system (Loved, Loathed, Longed for, Learned). Provides shortcodes for the feedback form, admin responses, and feedback breadcrumbs. Includes email notifications and an admin dashboard for managing submissions and responses.
- * Version:     1.0.0
+ * Version:     1.1.0
  * Author:      The Concrete Protector
  * Author URI:  https://theconcreteprotector.com
  * License:     GPL-2.0-or-later
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'FOURL_FEEDBACK_VERSION', '1.0.0' );
+define( 'FOURL_FEEDBACK_VERSION', '1.1.0' );
 define( 'FOURL_FEEDBACK_FILE', __FILE__ );
 define( 'FOURL_FEEDBACK_DIR', plugin_dir_path( __FILE__ ) );
 define( 'FOURL_FEEDBACK_URL', plugin_dir_url( __FILE__ ) );

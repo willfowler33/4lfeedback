@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 class FourL_Feedback_DB {
 
 	const VERSION_OPTION = 'fourl_feedback_db_version';
-	const DB_VERSION     = '1.0.0';
+	const DB_VERSION     = '1.1.0';
 
 	public static function submissions_table() {
 		global $wpdb;
@@ -35,6 +35,7 @@ class FourL_Feedback_DB {
 
 		$sql_submissions = "CREATE TABLE {$submissions} (
 			id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+			user_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
 			title VARCHAR(255) NOT NULL DEFAULT '',
 			submitter_name VARCHAR(190) NOT NULL DEFAULT '',
 			submitter_email VARCHAR(190) NOT NULL DEFAULT '',
@@ -43,6 +44,7 @@ class FourL_Feedback_DB {
 			ip_address VARCHAR(45) NOT NULL DEFAULT '',
 			created_at DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00',
 			PRIMARY KEY  (id),
+			KEY user_id (user_id),
 			KEY status (status),
 			KEY created_at (created_at)
 		) {$charset_collate};";
@@ -65,6 +67,13 @@ class FourL_Feedback_DB {
 		update_option( self::VERSION_OPTION, self::DB_VERSION );
 	}
 
+	public static function maybe_upgrade() {
+		$current = get_option( self::VERSION_OPTION, '0' );
+		if ( version_compare( $current, self::DB_VERSION, '<' ) ) {
+			self::install();
+		}
+	}
+
 	public static function uninstall() {
 		global $wpdb;
 		$submissions = self::submissions_table();
@@ -79,6 +88,7 @@ class FourL_Feedback_DB {
 		global $wpdb;
 
 		$row = array(
+			'user_id'         => isset( $data['user_id'] ) ? (int) $data['user_id'] : 0,
 			'title'           => isset( $data['title'] ) ? wp_strip_all_tags( $data['title'] ) : '',
 			'submitter_name'  => isset( $data['submitter_name'] ) ? wp_strip_all_tags( $data['submitter_name'] ) : '',
 			'submitter_email' => isset( $data['submitter_email'] ) ? sanitize_email( $data['submitter_email'] ) : '',
@@ -91,7 +101,7 @@ class FourL_Feedback_DB {
 		$ok = $wpdb->insert(
 			self::submissions_table(),
 			$row,
-			array( '%s', '%s', '%s', '%s', '%s', '%s', '%s' )
+			array( '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s' )
 		);
 
 		if ( false === $ok ) {
@@ -121,6 +131,7 @@ class FourL_Feedback_DB {
 		global $wpdb;
 		$defaults = array(
 			'status'   => '',
+			'user_id'  => null,
 			'limit'    => 20,
 			'offset'   => 0,
 			'orderby'  => 'created_at',
@@ -138,6 +149,11 @@ class FourL_Feedback_DB {
 		if ( ! empty( $args['status'] ) ) {
 			$where   .= ' AND status = %s';
 			$params[] = $args['status'];
+		}
+
+		if ( null !== $args['user_id'] ) {
+			$where   .= ' AND user_id = %d';
+			$params[] = (int) $args['user_id'];
 		}
 
 		$sql = 'SELECT * FROM ' . self::submissions_table() . " WHERE {$where} ORDER BY {$orderby} {$order} LIMIT %d OFFSET %d";
@@ -235,6 +251,24 @@ class FourL_Feedback_DB {
 			'SELECT r.*, s.title AS submission_title FROM ' . self::responses_table() . ' r ' . // phpcs:ignore
 			'LEFT JOIN ' . self::submissions_table() . ' s ON s.id = r.submission_id ' . // phpcs:ignore
 			'WHERE r.is_public = 1 ORDER BY r.created_at DESC LIMIT %d',
+			(int) $limit
+		);
+		$rows = $wpdb->get_results( $sql, ARRAY_A ); // phpcs:ignore
+		return $rows ? $rows : array();
+	}
+
+	public static function get_responses_for_user( $user_id, $limit = 10, $public_only = true ) {
+		global $wpdb;
+		$user_id = (int) $user_id;
+		if ( $user_id <= 0 ) {
+			return array();
+		}
+		$public_clause = $public_only ? 'AND r.is_public = 1' : '';
+		$sql = $wpdb->prepare(
+			'SELECT r.*, s.title AS submission_title FROM ' . self::responses_table() . ' r ' . // phpcs:ignore
+			'INNER JOIN ' . self::submissions_table() . ' s ON s.id = r.submission_id ' . // phpcs:ignore
+			"WHERE s.user_id = %d {$public_clause} ORDER BY r.created_at DESC LIMIT %d",
+			$user_id,
 			(int) $limit
 		);
 		$rows = $wpdb->get_results( $sql, ARRAY_A ); // phpcs:ignore

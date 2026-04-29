@@ -49,8 +49,19 @@ class FourL_Feedback_Ajax {
 			wp_send_json_error( array( 'message' => __( 'Please add at least one item before submitting.', '4lfeedback' ) ) );
 		}
 
+		$current_user = wp_get_current_user();
+		if ( $current_user && $current_user->ID ) {
+			if ( '' === $submitter_name ) {
+				$submitter_name = $current_user->display_name;
+			}
+			if ( '' === $submitter_email ) {
+				$submitter_email = $current_user->user_email;
+			}
+		}
+
 		$id = FourL_Feedback_DB::insert_submission(
 			array(
+				'user_id'         => $current_user ? (int) $current_user->ID : 0,
 				'title'           => $title,
 				'submitter_name'  => $submitter_name,
 				'submitter_email' => $submitter_email,

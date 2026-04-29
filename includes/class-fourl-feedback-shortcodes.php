@@ -48,11 +48,15 @@ class FourL_Feedback_Shortcodes {
 	public function render_form( $atts ) {
 		$atts = shortcode_atts(
 			array(
-				'title_label'  => __( 'Project, sprint, or training', '4lfeedback' ),
-				'submit_label' => __( 'Submit feedback', '4lfeedback' ),
-				'show_name'    => 'yes',
-				'show_email'   => 'yes',
-				'show_title'   => 'yes',
+				'title_label'      => __( 'DCU Course, Project, Event', '4lfeedback' ),
+				'title_placeholder'=> __( 'e.g. Graniflex Course', '4lfeedback' ),
+				'feedback_heading' => __( 'Feedback', '4lfeedback' ),
+				'submit_label'     => __( 'Submit feedback', '4lfeedback' ),
+				'show_name'        => 'yes',
+				'show_email'       => 'yes',
+				'show_title'       => 'yes',
+				'show_breadcrumbs' => 'no',
+				'breadcrumbs_limit'=> 10,
 			),
 			$atts,
 			'fourl_feedback_form'
@@ -82,9 +86,13 @@ class FourL_Feedback_Shortcodes {
 							id="<?php echo esc_attr( $form_id ); ?>-title"
 							class="fourl-title-input"
 							name="title"
-							placeholder="<?php esc_attr_e( 'e.g. Q2 Training — Graniflex rollout', '4lfeedback' ); ?>"
+							placeholder="<?php echo esc_attr( $atts['title_placeholder'] ); ?>"
 						>
 					</div>
+				<?php endif; ?>
+
+				<?php if ( ! empty( $atts['feedback_heading'] ) ) : ?>
+					<h3 class="fourl-feedback-heading"><?php echo esc_html( $atts['feedback_heading'] ); ?></h3>
 				<?php endif; ?>
 
 				<div class="fourl-quadrant-grid">
@@ -133,6 +141,21 @@ class FourL_Feedback_Shortcodes {
 					<span class="fourl-feedback-message" data-message role="status" aria-live="polite"></span>
 				</div>
 			</form>
+
+			<?php if ( 'yes' === $atts['show_breadcrumbs'] ) : ?>
+				<div class="fourl-inline-breadcrumbs">
+					<h3 class="fourl-feedback-heading"><?php esc_html_e( 'Your previous feedback', '4lfeedback' ); ?></h3>
+					<?php
+					echo $this->render_breadcrumbs( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+						array(
+							'limit'      => (int) $atts['breadcrumbs_limit'],
+							'show_items' => 'yes',
+							'show_name'  => 'no',
+						)
+					);
+					?>
+				</div>
+			<?php endif; ?>
 		</div>
 		<?php
 		return ob_get_clean();
@@ -150,9 +173,19 @@ class FourL_Feedback_Shortcodes {
 
 		wp_enqueue_style( 'fourl-feedback' );
 
-		$responses = FourL_Feedback_DB::get_recent_public_responses( max( 1, (int) $atts['limit'] ) );
-
 		ob_start();
+
+		if ( ! is_user_logged_in() ) {
+			?>
+			<div class="fourl-responses-wrapper">
+				<p class="fourl-empty"><?php esc_html_e( 'Please log in to view your responses.', '4lfeedback' ); ?></p>
+			</div>
+			<?php
+			return ob_get_clean();
+		}
+
+		$user_id   = get_current_user_id();
+		$responses = FourL_Feedback_DB::get_responses_for_user( $user_id, max( 1, (int) $atts['limit'] ), true );
 		?>
 		<div class="fourl-responses-wrapper">
 			<?php if ( empty( $responses ) ) : ?>
@@ -193,16 +226,28 @@ class FourL_Feedback_Shortcodes {
 
 		wp_enqueue_style( 'fourl-feedback' );
 
+		ob_start();
+
+		if ( ! is_user_logged_in() ) {
+			?>
+			<div class="fourl-breadcrumbs-wrapper">
+				<p class="fourl-empty"><?php esc_html_e( 'Please log in to view your feedback.', '4lfeedback' ); ?></p>
+			</div>
+			<?php
+			return ob_get_clean();
+		}
+
+		$user_id = get_current_user_id();
+
 		$rows = FourL_Feedback_DB::get_submissions(
 			array(
-				'limit'  => max( 1, (int) $atts['limit'] ),
-				'status' => sanitize_key( $atts['status'] ),
+				'limit'   => max( 1, (int) $atts['limit'] ),
+				'status'  => sanitize_key( $atts['status'] ),
+				'user_id' => $user_id,
 			)
 		);
 
 		$quadrants = self::quadrants();
-
-		ob_start();
 		?>
 		<div class="fourl-breadcrumbs-wrapper">
 			<?php if ( empty( $rows ) ) : ?>

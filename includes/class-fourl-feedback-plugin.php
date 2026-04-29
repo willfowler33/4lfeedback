@@ -25,6 +25,8 @@ class FourL_Feedback_Plugin {
 	private function __construct() {
 		load_plugin_textdomain( '4lfeedback', false, dirname( FOURL_FEEDBACK_BASENAME ) . '/languages' );
 
+		FourL_Feedback_DB::maybe_upgrade();
+
 		new FourL_Feedback_Shortcodes();
 		new FourL_Feedback_Ajax();
 

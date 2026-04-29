@@ -514,15 +514,15 @@ class FourL_Feedback_Admin {
 				<tbody>
 					<tr>
 						<td><code>[fourl_feedback_form]</code></td>
-						<td><?php esc_html_e( 'Renders the 4Ls submission form. Attributes: title_label, submit_label, show_name, show_email, show_title.', '4lfeedback' ); ?></td>
+						<td><?php esc_html_e( 'Renders the 4Ls submission form. Attributes: title_label, title_placeholder, feedback_heading, submit_label, show_name, show_email, show_title, show_breadcrumbs (yes/no), breadcrumbs_limit.', '4lfeedback' ); ?></td>
 					</tr>
 					<tr>
 						<td><code>[fourl_feedback_responses]</code></td>
-						<td><?php esc_html_e( 'Lists the most recent public admin responses. Attributes: limit, show_title.', '4lfeedback' ); ?></td>
+						<td><?php esc_html_e( 'Lists the logged-in user\'s public admin responses. Attributes: limit, show_title.', '4lfeedback' ); ?></td>
 					</tr>
 					<tr>
 						<td><code>[fourl_feedback_breadcrumbs]</code></td>
-						<td><?php esc_html_e( 'Lists submitted feedback (the breadcrumb trail). Attributes: limit, status, show_items, show_name.', '4lfeedback' ); ?></td>
+						<td><?php esc_html_e( 'Lists the logged-in user\'s submitted feedback. Attributes: limit, status, show_items, show_name.', '4lfeedback' ); ?></td>
 					</tr>
 				</tbody>
 			</table>

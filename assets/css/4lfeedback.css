@@ -31,6 +31,21 @@
 	background: #fff;
 }
 
+.fourl-feedback-heading {
+	font-size: 13px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	color: #555;
+	margin: 0 0 8px;
+}
+
+.fourl-inline-breadcrumbs {
+	margin-top: 24px;
+	padding-top: 20px;
+	border-top: 1px solid #e5e5e5;
+}
+
 .fourl-quadrant-grid {
 	display: grid;
 	grid-template-columns: repeat(2, minmax(0, 1fr));
