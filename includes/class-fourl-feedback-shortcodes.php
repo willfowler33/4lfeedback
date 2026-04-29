@@ -296,19 +296,6 @@ class FourL_Feedback_Shortcodes {
 								</div>
 							<?php endif; ?>
 
-							<?php
-							$public_responses = FourL_Feedback_DB::get_responses_for( (int) $row['id'], true );
-							if ( ! empty( $public_responses ) ) :
-								?>
-								<div class="fourl-breadcrumb-responses">
-									<div class="fourl-breadcrumb-responses-label"><?php esc_html_e( 'Response', '4lfeedback' ); ?></div>
-									<?php foreach ( $public_responses as $resp ) : ?>
-										<div class="fourl-breadcrumb-response">
-											<?php echo wp_kses_post( wpautop( $resp['response_body'] ) ); ?>
-										</div>
-									<?php endforeach; ?>
-								</div>
-							<?php endif; ?>
 						</li>
 					<?php endforeach; ?>
 				</ul>

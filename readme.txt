@@ -18,7 +18,7 @@ The 4L Feedback System lets you collect structured feedback from users using the
 
 * `[fourl_feedback_form]` — display the 4Ls feedback form on any page or post. Optionally renders the logged-in user's previous feedback inline (`show_breadcrumbs="yes"`).
 * `[fourl_feedback_responses]` — lists the *logged-in user's* public admin responses.
-* `[fourl_feedback_breadcrumbs]` — lists the *logged-in user's* submitted feedback (with public responses inline).
+* `[fourl_feedback_breadcrumbs]` — lists the *logged-in user's* submitted feedback.
 
 Both `responses` and `breadcrumbs` are scoped to the currently logged-in user — each user only sees the feedback they themselves submitted, and the responses given to them.
 
