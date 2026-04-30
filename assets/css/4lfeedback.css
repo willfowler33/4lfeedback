@@ -65,22 +65,22 @@
 }
 .fourl-quad-loved   { background: #E1F5EE; }
 .fourl-quad-loathed { background: #FCEBEB; }
-.fourl-quad-longed  { background: #FAEEDA; }
-.fourl-quad-learned { background: #EEEDFE; }
+.fourl-quad-longed  { background: #FFE0CC; }
+.fourl-quad-learned { background: #FECACA; }
 
 .fourl-quad-loved .fourl-quad-title   { color: #085041; }
 .fourl-quad-loathed .fourl-quad-title { color: #791F1F; }
-.fourl-quad-longed .fourl-quad-title  { color: #633806; }
-.fourl-quad-learned .fourl-quad-title { color: #3C3489; }
+.fourl-quad-longed .fourl-quad-title  { color: #7C3A0A; }
+.fourl-quad-learned .fourl-quad-title { color: #7F1D1D; }
 
 .fourl-quad-loved .fourl-quad-subtitle,
 .fourl-quad-loved .fourl-quad-count   { color: #0F6E56; }
 .fourl-quad-loathed .fourl-quad-subtitle,
 .fourl-quad-loathed .fourl-quad-count { color: #A32D2D; }
 .fourl-quad-longed .fourl-quad-subtitle,
-.fourl-quad-longed .fourl-quad-count  { color: #854F0B; }
+.fourl-quad-longed .fourl-quad-count  { color: #B5530E; }
 .fourl-quad-learned .fourl-quad-subtitle,
-.fourl-quad-learned .fourl-quad-count { color: #534AB7; }
+.fourl-quad-learned .fourl-quad-count { color: #DC2626; }
 
 .fourl-quad-header {
 	display: flex;
@@ -254,8 +254,8 @@
 }
 .fourl-breadcrumb-quad.fourl-quad-loved   { background: #E1F5EE; }
 .fourl-breadcrumb-quad.fourl-quad-loathed { background: #FCEBEB; }
-.fourl-breadcrumb-quad.fourl-quad-longed  { background: #FAEEDA; }
-.fourl-breadcrumb-quad.fourl-quad-learned { background: #EEEDFE; }
+.fourl-breadcrumb-quad.fourl-quad-longed  { background: #FFE0CC; }
+.fourl-breadcrumb-quad.fourl-quad-learned { background: #FECACA; }
 
 .fourl-breadcrumb-quad-label {
 	font-size: 11px;
