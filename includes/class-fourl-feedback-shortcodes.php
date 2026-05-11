@@ -69,12 +69,26 @@ class FourL_Feedback_Shortcodes {
 		$require_email   = ! empty( $settings['require_email'] );
 		$allow_anonymous = ! empty( $settings['allow_anonymous'] );
 		$quadrants       = self::quadrants();
-		$form_id         = 'fourl-feedback-' . wp_rand( 1000, 9999 );
+
+		// Stable form ID — HubSpot's non-HubSpot form capture fingerprints by
+		// the id attribute, so a random per-request value causes it to register
+		// a brand-new form on every page load. The static counter keeps each
+		// instance on a page unique while staying deterministic across loads.
+		static $instance_count = 0;
+		$instance_count++;
+		$form_id = 'fourl-feedback-form' . ( $instance_count > 1 ? '-' . $instance_count : '' );
 
 		ob_start();
 		?>
 		<div class="fourl-feedback-wrapper">
-			<form class="fourl-feedback-form" id="<?php echo esc_attr( $form_id ); ?>" novalidate>
+			<form
+				class="fourl-feedback-form"
+				id="<?php echo esc_attr( $form_id ); ?>"
+				data-hs-do-not-collect="true"
+				data-hs-ignore="true"
+				autocomplete="off"
+				novalidate
+			>
 
 				<?php if ( 'yes' === $atts['show_title'] ) : ?>
 					<div class="fourl-row fourl-meta">
