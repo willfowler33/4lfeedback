@@ -17,11 +17,29 @@ class FourL_Feedback_Ajax {
 	}
 
 	public function handle_submit() {
-		check_ajax_referer( 'fourl_feedback_submit', 'nonce' );
+		FourL_Feedback_Logger::debug(
+			'submit_started',
+			array(
+				'logged_in' => is_user_logged_in(),
+				'has_nonce' => ! empty( $_POST['nonce'] ),
+				'post_keys' => array_keys( $_POST ),
+			)
+		);
 
-		// Honeypot.
-		if ( ! empty( $_POST['fourl_hp'] ) ) {
-			wp_send_json_success( array( 'message' => __( 'Thanks — your feedback was submitted.', '4lfeedback' ) ) );
+		// Nonce check — verify manually so we can log failures (which otherwise die silently).
+		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '';
+		if ( ! wp_verify_nonce( $nonce, 'fourl_feedback_submit' ) ) {
+			FourL_Feedback_Logger::warning(
+				'nonce_failed',
+				array(
+					'logged_in' => is_user_logged_in(),
+					'reason'    => 'Likely page cache served stale nonce, or session expired before submit.',
+				)
+			);
+			wp_send_json_error(
+				array( 'message' => __( 'Your session expired. Please refresh the page and try again.', '4lfeedback' ) ),
+				403
+			);
 		}
 
 		$settings = FourL_Feedback_Plugin::get_settings();
@@ -32,10 +50,12 @@ class FourL_Feedback_Ajax {
 		$raw_items       = isset( $_POST['items'] ) ? wp_unslash( $_POST['items'] ) : '';
 
 		if ( empty( $settings['allow_anonymous'] ) && empty( $submitter_name ) ) {
+			FourL_Feedback_Logger::info( 'validation_failed', array( 'field' => 'submitter_name' ) );
 			wp_send_json_error( array( 'message' => __( 'Please enter your name.', '4lfeedback' ) ) );
 		}
 
 		if ( ! empty( $settings['require_email'] ) && ! is_email( $submitter_email ) ) {
+			FourL_Feedback_Logger::info( 'validation_failed', array( 'field' => 'submitter_email' ) );
 			wp_send_json_error( array( 'message' => __( 'A valid email is required.', '4lfeedback' ) ) );
 		}
 
@@ -46,6 +66,13 @@ class FourL_Feedback_Ajax {
 			$total += count( $list );
 		}
 		if ( 0 === $total ) {
+			FourL_Feedback_Logger::info(
+				'validation_failed',
+				array(
+					'field'         => 'items',
+					'raw_items_len' => strlen( (string) $raw_items ),
+				)
+			);
 			wp_send_json_error( array( 'message' => __( 'Please add at least one item before submitting.', '4lfeedback' ) ) );
 		}
 
@@ -57,6 +84,13 @@ class FourL_Feedback_Ajax {
 			if ( '' === $submitter_email ) {
 				$submitter_email = $current_user->user_email;
 			}
+		} else {
+			FourL_Feedback_Logger::warning(
+				'submitted_logged_out',
+				array(
+					'reason' => 'Submission saved with user_id=0 — will not appear in user-scoped breadcrumbs. Likely logged out by the time of submit (session expired, or page cached for a guest).',
+				)
+			);
 		}
 
 		$id = FourL_Feedback_DB::insert_submission(
@@ -71,10 +105,40 @@ class FourL_Feedback_Ajax {
 		);
 
 		if ( is_wp_error( $id ) ) {
+			global $wpdb;
+			FourL_Feedback_Logger::error(
+				'db_insert_failed',
+				array(
+					'wp_error'  => $id->get_error_message(),
+					'db_error'  => $wpdb->last_error,
+					'db_query'  => $wpdb->last_query,
+				)
+			);
 			wp_send_json_error( array( 'message' => $id->get_error_message() ) );
 		}
 
-		$this->send_notification( $id, $title, $submitter_name, $submitter_email, $items );
+		FourL_Feedback_Logger::info(
+			'submission_saved',
+			array(
+				'title'    => $title,
+				'user_id'  => $current_user ? (int) $current_user->ID : 0,
+				'counts'   => array(
+					'loved'   => count( $items['loved'] ),
+					'loathed' => count( $items['loathed'] ),
+					'longed'  => count( $items['longed'] ),
+					'learned' => count( $items['learned'] ),
+				),
+			),
+			(int) $id
+		);
+
+		$email_ok = $this->send_notification( $id, $title, $submitter_name, $submitter_email, $items );
+		FourL_Feedback_Logger::log(
+			$email_ok ? FourL_Feedback_Logger::LEVEL_INFO : FourL_Feedback_Logger::LEVEL_WARNING,
+			$email_ok ? 'notification_sent' : 'notification_failed',
+			array(),
+			(int) $id
+		);
 
 		wp_send_json_success(
 			array(
@@ -186,6 +250,6 @@ class FourL_Feedback_Ajax {
 			$headers[] = 'Reply-To: ' . sprintf( '%s <%s>', $from_name, $email );
 		}
 
-		wp_mail( $to, $subject, $body, $headers );
+		return (bool) wp_mail( $to, $subject, $body, $headers );
 	}
 }

@@ -108,7 +108,6 @@
 			var titleEl = form.querySelector('input[name="title"]');
 			var nameEl  = form.querySelector('input[name="submitter_name"]');
 			var emailEl = form.querySelector('input[name="submitter_email"]');
-			var hpEl    = form.querySelector('input[name="fourl_hp"]');
 
 			var payload = new FormData();
 			payload.append('action', 'fourl_feedback_submit');
@@ -116,7 +115,6 @@
 			payload.append('title', titleEl ? titleEl.value : '');
 			payload.append('submitter_name', nameEl ? nameEl.value : '');
 			payload.append('submitter_email', emailEl ? emailEl.value : '');
-			payload.append('fourl_hp', hpEl ? hpEl.value : '');
 			payload.append('items', JSON.stringify(state));
 
 			submitBtn.disabled = true;

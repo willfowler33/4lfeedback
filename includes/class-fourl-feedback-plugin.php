@@ -74,6 +74,7 @@ class FourL_Feedback_Plugin {
 			'notification_email' => get_option( 'admin_email' ),
 			'require_email'      => 0,
 			'allow_anonymous'    => 1,
+			'enable_logging'     => 0,
 		);
 		$saved = get_option( self::OPTION_SETTINGS, array() );
 		return wp_parse_args( $saved, $defaults );

@@ -53,6 +53,15 @@ class FourL_Feedback_Admin {
 			self::PAGE_SLUG . '-settings',
 			array( $this, 'render_settings_page' )
 		);
+
+		add_submenu_page(
+			self::PAGE_SLUG,
+			__( '4L Feedback Logs', '4lfeedback' ),
+			__( 'Logs', '4lfeedback' ),
+			self::CAP,
+			self::PAGE_SLUG . '-logs',
+			array( $this, 'render_logs_page' )
+		);
 	}
 
 	public function enqueue_admin_assets( $hook ) {
@@ -82,6 +91,7 @@ class FourL_Feedback_Admin {
 		}
 		$out['require_email']   = ! empty( $input['require_email'] ) ? 1 : 0;
 		$out['allow_anonymous'] = ! empty( $input['allow_anonymous'] ) ? 1 : 0;
+		$out['enable_logging']  = ! empty( $input['enable_logging'] ) ? 1 : 0;
 		return $out;
 	}
 
@@ -135,6 +145,16 @@ class FourL_Feedback_Admin {
 					FourL_Feedback_DB::delete_submission( $submission_id );
 					$this->redirect_with_flash( 'submission_deleted' );
 				}
+			}
+		}
+
+		if ( ! empty( $_GET['page'] ) && self::PAGE_SLUG . '-logs' === $_GET['page'] && isset( $_POST['fourl_action'] ) ) {
+			$action = sanitize_key( wp_unslash( $_POST['fourl_action'] ) );
+			if ( 'clear_logs' === $action ) {
+				check_admin_referer( 'fourl_clear_logs' );
+				FourL_Feedback_Logger::clear();
+				wp_safe_redirect( add_query_arg( array( 'page' => self::PAGE_SLUG . '-logs', 'flash' => 'logs_cleared' ), admin_url( 'admin.php' ) ) );
+				exit;
 			}
 		}
 	}
@@ -501,6 +521,18 @@ class FourL_Feedback_Admin {
 							</label>
 						</td>
 					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Logging', '4lfeedback' ); ?></th>
+						<td>
+							<label>
+								<input type="checkbox" name="<?php echo esc_attr( FourL_Feedback_Plugin::OPTION_SETTINGS ); ?>[enable_logging]" value="1" <?php checked( ! empty( $settings['enable_logging'] ) ); ?>>
+								<?php esc_html_e( 'Enable verbose logging (info/debug events).', '4lfeedback' ); ?>
+							</label>
+							<p class="description">
+								<?php esc_html_e( 'Warnings and errors are always logged. Turn this on to also capture every submission attempt — useful when diagnosing missing submissions. View logs under 4L Feedback → Logs.', '4lfeedback' ); ?>
+							</p>
+						</td>
+					</tr>
 				</table>
 
 				<?php submit_button(); ?>
@@ -524,6 +556,161 @@ class FourL_Feedback_Admin {
 						<td><code>[fourl_feedback_breadcrumbs]</code></td>
 						<td><?php esc_html_e( 'Lists the logged-in user\'s submitted feedback. Attributes: limit, status, show_items, show_name.', '4lfeedback' ); ?></td>
 					</tr>
+				</tbody>
+			</table>
+		</div>
+		<?php
+	}
+
+	public function render_logs_page() {
+		if ( ! current_user_can( self::CAP ) ) {
+			return;
+		}
+
+		$flash = isset( $_GET['flash'] ) ? sanitize_key( wp_unslash( $_GET['flash'] ) ) : '';
+		if ( 'logs_cleared' === $flash ) {
+			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Logs cleared.', '4lfeedback' ) . '</p></div>';
+		}
+
+		$level_filter = isset( $_GET['level'] ) ? sanitize_key( wp_unslash( $_GET['level'] ) ) : '';
+		$event_filter = isset( $_GET['event'] ) ? sanitize_key( wp_unslash( $_GET['event'] ) ) : '';
+		$paged        = isset( $_GET['paged'] ) ? max( 1, (int) $_GET['paged'] ) : 1;
+		$per_page     = 50;
+
+		$rows = FourL_Feedback_Logger::get(
+			array(
+				'level'  => $level_filter,
+				'event'  => $event_filter,
+				'limit'  => $per_page,
+				'offset' => ( $paged - 1 ) * $per_page,
+			)
+		);
+		$total = FourL_Feedback_Logger::count(
+			array(
+				'level' => $level_filter,
+				'event' => $event_filter,
+			)
+		);
+		$pages = max( 1, (int) ceil( $total / $per_page ) );
+
+		$base_url   = admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-logs' );
+		$is_enabled = FourL_Feedback_Logger::is_enabled();
+		?>
+		<div class="wrap">
+			<h1 class="wp-heading-inline"><?php esc_html_e( '4L Feedback Logs', '4lfeedback' ); ?></h1>
+			<form method="post" action="<?php echo esc_url( $base_url ); ?>" style="display: inline-block; margin-left: 10px;" onsubmit="return confirm('<?php echo esc_js( __( 'Clear all log entries?', '4lfeedback' ) ); ?>');">
+				<?php wp_nonce_field( 'fourl_clear_logs' ); ?>
+				<input type="hidden" name="fourl_action" value="clear_logs">
+				<button type="submit" class="page-title-action"><?php esc_html_e( 'Clear logs', '4lfeedback' ); ?></button>
+			</form>
+			<hr class="wp-header-end">
+
+			<p>
+				<?php if ( $is_enabled ) : ?>
+					<span style="color: #0F6E56;"><strong><?php esc_html_e( 'Verbose logging is ON', '4lfeedback' ); ?></strong></span> —
+					<?php esc_html_e( 'every submission attempt is being recorded (info + debug events).', '4lfeedback' ); ?>
+				<?php else : ?>
+					<span style="color: #854F0B;"><strong><?php esc_html_e( 'Verbose logging is OFF', '4lfeedback' ); ?></strong></span> —
+					<?php esc_html_e( 'only warnings and errors are recorded. Enable verbose logging in Settings to also capture successful submissions and validation events.', '4lfeedback' ); ?>
+				<?php endif; ?>
+			</p>
+
+			<form method="get" action="<?php echo esc_url( admin_url( 'admin.php' ) ); ?>" style="margin: 12px 0;">
+				<input type="hidden" name="page" value="<?php echo esc_attr( self::PAGE_SLUG . '-logs' ); ?>">
+				<label><?php esc_html_e( 'Level', '4lfeedback' ); ?>
+					<select name="level">
+						<option value=""><?php esc_html_e( 'All', '4lfeedback' ); ?></option>
+						<?php foreach ( array( 'debug', 'info', 'warning', 'error' ) as $lvl ) : ?>
+							<option value="<?php echo esc_attr( $lvl ); ?>" <?php selected( $level_filter, $lvl ); ?>><?php echo esc_html( ucfirst( $lvl ) ); ?></option>
+						<?php endforeach; ?>
+					</select>
+				</label>
+				<label><?php esc_html_e( 'Event', '4lfeedback' ); ?>
+					<input type="text" name="event" value="<?php echo esc_attr( $event_filter ); ?>" placeholder="e.g. submission_saved">
+				</label>
+				<button type="submit" class="button"><?php esc_html_e( 'Filter', '4lfeedback' ); ?></button>
+				<?php if ( $level_filter || $event_filter ) : ?>
+					<a href="<?php echo esc_url( $base_url ); ?>" class="button"><?php esc_html_e( 'Reset', '4lfeedback' ); ?></a>
+				<?php endif; ?>
+			</form>
+
+			<table class="wp-list-table widefat fixed striped">
+				<thead>
+					<tr>
+						<th style="width: 140px;"><?php esc_html_e( 'When', '4lfeedback' ); ?></th>
+						<th style="width: 80px;"><?php esc_html_e( 'Level', '4lfeedback' ); ?></th>
+						<th style="width: 180px;"><?php esc_html_e( 'Event', '4lfeedback' ); ?></th>
+						<th style="width: 80px;"><?php esc_html_e( 'Sub. ID', '4lfeedback' ); ?></th>
+						<th style="width: 80px;"><?php esc_html_e( 'User', '4lfeedback' ); ?></th>
+						<th><?php esc_html_e( 'Context', '4lfeedback' ); ?></th>
+					</tr>
+				</thead>
+				<tbody>
+					<?php if ( empty( $rows ) ) : ?>
+						<tr><td colspan="6"><?php esc_html_e( 'No log entries.', '4lfeedback' ); ?></td></tr>
+					<?php else : ?>
+						<?php foreach ( $rows as $row ) : ?>
+							<?php
+							$level_colors = array(
+								'debug'   => '#888',
+								'info'    => '#0F6E56',
+								'warning' => '#854F0B',
+								'error'   => '#A32D2D',
+							);
+							$color   = $level_colors[ $row['level'] ] ?? '#000';
+							$user    = $row['user_id'] ? get_user_by( 'id', (int) $row['user_id'] ) : null;
+							$user_lbl= $user ? $user->user_login : ( $row['user_id'] ? '#' . (int) $row['user_id'] : '—' );
+							?>
+							<tr>
+								<td><?php echo esc_html( mysql2date( 'Y-m-d H:i:s', $row['created_at'] ) ); ?></td>
+								<td><strong style="color: <?php echo esc_attr( $color ); ?>;"><?php echo esc_html( strtoupper( $row['level'] ) ); ?></strong></td>
+								<td><code><?php echo esc_html( $row['event'] ); ?></code></td>
+								<td>
+									<?php if ( $row['submission_id'] ) : ?>
+										<a href="<?php echo esc_url( admin_url( 'admin.php?page=' . self::PAGE_SLUG . '&view=' . (int) $row['submission_id'] ) ); ?>">#<?php echo (int) $row['submission_id']; ?></a>
+									<?php else : ?>—<?php endif; ?>
+								</td>
+								<td><?php echo esc_html( $user_lbl ); ?></td>
+								<td><pre style="white-space: pre-wrap; word-break: break-word; margin: 0; font-size: 11px; max-height: 200px; overflow: auto;"><?php echo esc_html( wp_json_encode( $row['context'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) ); ?></pre></td>
+							</tr>
+						<?php endforeach; ?>
+					<?php endif; ?>
+				</tbody>
+			</table>
+
+			<?php if ( $pages > 1 ) : ?>
+				<div class="tablenav"><div class="tablenav-pages">
+					<?php
+					$qs = array();
+					if ( $level_filter ) { $qs['level'] = $level_filter; }
+					if ( $event_filter ) { $qs['event'] = $event_filter; }
+					echo wp_kses_post(
+						paginate_links(
+							array(
+								'base'      => add_query_arg( array_merge( $qs, array( 'paged' => '%#%' ) ), $base_url ),
+								'format'    => '',
+								'prev_text' => '&laquo;',
+								'next_text' => '&raquo;',
+								'total'     => $pages,
+								'current'   => $paged,
+							)
+						)
+					);
+					?>
+				</div></div>
+			<?php endif; ?>
+
+			<h2 style="margin-top: 30px;"><?php esc_html_e( 'What the events mean', '4lfeedback' ); ?></h2>
+			<table class="widefat striped" style="max-width: 900px;">
+				<thead><tr><th><?php esc_html_e( 'Event', '4lfeedback' ); ?></th><th><?php esc_html_e( 'Meaning', '4lfeedback' ); ?></th></tr></thead>
+				<tbody>
+					<tr><td><code>submit_started</code></td><td><?php esc_html_e( 'AJAX handler entered (debug only).', '4lfeedback' ); ?></td></tr>
+					<tr><td><code>nonce_failed</code></td><td><?php esc_html_e( 'Nonce mismatch. Likely cause: page cache served a stale nonce, or the session expired before the user clicked Submit.', '4lfeedback' ); ?></td></tr>
+					<tr><td><code>validation_failed</code></td><td><?php esc_html_e( 'Server-side validation rejected the input (empty items, missing name/email).', '4lfeedback' ); ?></td></tr>
+					<tr><td><code>submitted_logged_out</code></td><td><?php esc_html_e( 'Submission saved but the visitor was not logged in, so it has user_id=0 and will NOT appear under that user\'s breadcrumbs.', '4lfeedback' ); ?></td></tr>
+					<tr><td><code>db_insert_failed</code></td><td><?php esc_html_e( 'Database refused the insert. Context includes the wpdb error.', '4lfeedback' ); ?></td></tr>
+					<tr><td><code>submission_saved</code></td><td><?php esc_html_e( 'Submission saved successfully.', '4lfeedback' ); ?></td></tr>
+					<tr><td><code>notification_sent / notification_failed</code></td><td><?php esc_html_e( 'wp_mail() result for the admin notification email.', '4lfeedback' ); ?></td></tr>
 				</tbody>
 			</table>
 		</div>

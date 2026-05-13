@@ -177,8 +177,6 @@
 }
 .fourl-required { color: #A32D2D; }
 
-.fourl-hp { display: none !important; }
-
 .fourl-actions {
 	display: flex;
 	gap: 12px;

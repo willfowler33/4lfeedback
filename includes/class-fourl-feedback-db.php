@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 class FourL_Feedback_DB {
 
 	const VERSION_OPTION = 'fourl_feedback_db_version';
-	const DB_VERSION     = '1.1.0';
+	const DB_VERSION     = '1.2.0';
 
 	public static function submissions_table() {
 		global $wpdb;
@@ -32,6 +32,7 @@ class FourL_Feedback_DB {
 		$charset_collate = $wpdb->get_charset_collate();
 		$submissions     = self::submissions_table();
 		$responses       = self::responses_table();
+		$log             = FourL_Feedback_Logger::table();
 
 		$sql_submissions = "CREATE TABLE {$submissions} (
 			id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -61,8 +62,25 @@ class FourL_Feedback_DB {
 			KEY is_public (is_public)
 		) {$charset_collate};";
 
+		$sql_log = "CREATE TABLE {$log} (
+			id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+			created_at DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00',
+			level VARCHAR(10) NOT NULL DEFAULT 'info',
+			event VARCHAR(100) NOT NULL DEFAULT '',
+			submission_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
+			user_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
+			ip_address VARCHAR(45) NOT NULL DEFAULT '',
+			context LONGTEXT NOT NULL,
+			PRIMARY KEY  (id),
+			KEY level (level),
+			KEY event (event),
+			KEY submission_id (submission_id),
+			KEY created_at (created_at)
+		) {$charset_collate};";
+
 		dbDelta( $sql_submissions );
 		dbDelta( $sql_responses );
+		dbDelta( $sql_log );
 
 		update_option( self::VERSION_OPTION, self::DB_VERSION );
 	}
@@ -78,6 +96,8 @@ class FourL_Feedback_DB {
 		global $wpdb;
 		$submissions = self::submissions_table();
 		$responses   = self::responses_table();
+		$log         = FourL_Feedback_Logger::table();
+		$wpdb->query( "DROP TABLE IF EXISTS {$log}" ); // phpcs:ignore
 		$wpdb->query( "DROP TABLE IF EXISTS {$responses}" ); // phpcs:ignore
 		$wpdb->query( "DROP TABLE IF EXISTS {$submissions}" ); // phpcs:ignore
 		delete_option( self::VERSION_OPTION );

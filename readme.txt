@@ -4,7 +4,7 @@ Tags: feedback, retrospective, 4ls, training, surveys
 Requires at least: 5.8
 Tested up to: 6.5
 Requires PHP: 7.4
-Stable tag: 1.1.0
+Stable tag: 1.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -54,6 +54,11 @@ Both `responses` and `breadcrumbs` are scoped to the currently logged-in user �
 `[fourl_feedback_breadcrumbs limit="20" status="" show_items="yes" show_name="yes"]`
 
 == Changelog ==
+
+= 1.2.0 =
+* Removed the honeypot field — was causing silent "successful" submissions when password manager / autofill extensions filled the hidden input on internal users' browsers.
+* Added a logging system (custom `{prefix}_fourl_log` table) with an admin page at 4L Feedback → Logs. Warnings and errors always log; the Settings page has an "Enable verbose logging" toggle to also record info/debug events for diagnosing intermittent submission issues.
+* Logged events cover: submit start, nonce failures, validation failures, logged-out submissions (which would be invisible in user-scoped breadcrumbs), DB insert failures, successful saves, and wp_mail result.
 
 = 1.1.0 =
 * Submissions are now tied to the logged-in user. `[fourl_feedback_responses]` and `[fourl_feedback_breadcrumbs]` filter to only show that user's own data.

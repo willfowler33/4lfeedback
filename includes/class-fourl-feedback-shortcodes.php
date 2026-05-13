@@ -148,7 +148,6 @@ class FourL_Feedback_Shortcodes {
 
 				<input type="hidden" name="action" value="fourl_feedback_submit">
 				<input type="hidden" name="nonce" value="<?php echo esc_attr( wp_create_nonce( 'fourl_feedback_submit' ) ); ?>">
-				<input type="text" name="fourl_hp" value="" tabindex="-1" autocomplete="off" class="fourl-hp" aria-hidden="true">
 
 				<div class="fourl-actions">
 					<button type="submit" class="fourl-submit-btn"><?php echo esc_html( $atts['submit_label'] ); ?></button>
